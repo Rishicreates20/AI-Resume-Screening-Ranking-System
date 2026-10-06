@@ -1,0 +1,6 @@
+## If I Had More Time
+
+1. **Labelled evaluation set.** Have a recruiter rank 20–30 of these resumes, then measure NDCG@10 and Spearman correlation against the system's ranking. Weights could then be tuned on data instead of judgment, and any regression after a change would show up immediately.
+2. **Layout-aware parsing and OCR.** Some PDFs store their text out of reading order (names and sections ended up in the wrong place for a few candidates). Grouping text blocks by column and adding an OCR fallback for scanned resumes would fix both cases. Today those are only flagged.
+3. **Deeper GitHub verification.** Confirm that the candidate actually authored commits in repos that match their resume projects, and that those repos have a README and tests, instead of only matching repo names. That turns "has a similar repo" into real evidence of ownership.
+4. **Rate-limit-aware async LLM calls.** Use `httpx` with a token-bucket limiter sized to the provider's tokens-per-minute budget, and redact contact details before resume text is sent. On the free tier the LLM step takes ~15–25 min; this would cut that and keep personal data out of third-party APIs.
