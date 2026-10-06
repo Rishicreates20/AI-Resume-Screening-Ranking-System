@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f3f4f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0f15" media="(prefers-color-scheme: dark)">
+<title>Resume Screening Report</title>
+<style>
+/* Direction: a review sheet for one hiring batch. Ruled rows instead of cards, one violet accent for
+   interface state, and five fixed category hues that only ever mean "points in this category".
+   The signature piece is the cohort strip: every candidate is a dot on a 0-100 scale, and it doubles as navigation.
+   Category hues come from the validated categorical palette (slots 1-5, fixed order). */
+:root {
+  color-scheme: light;
+  --page: #f3f4f8; --surface: #fbfbfd; --surface-2: #eceef5; --line: #dfe2ea; --line-strong: #c6cbd9;
+  --ink: #12131c; --ink-2: #464a5d; --ink-3: #686d84;
+  --accent: #4a3aa7; --accent-ink: #ffffff; --accent-soft: #e8e5f7;
+  --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100; --c5: #e87ba4;
+  --good: #0ca30c; --good-ink: #006300; --bad: #d03b3b; --bad-ink: #b32d2d;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0e0f15; --surface: #16171f; --surface-2: #1e2029; --line: #2a2c38; --line-strong: #3a3d4d;
+    --ink: #f4f4f8; --ink-2: #c0c3d1; --ink-3: #8e92a7;
+    --accent: #9085e9; --accent-ink: #0e0f15; --accent-soft: #272446;
+    --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181;
+    --good-ink: #0ca30c; --bad-ink: #e86a6a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0e0f15; --surface: #16171f; --surface-2: #1e2029; --line: #2a2c38; --line-strong: #3a3d4d;
+  --ink: #f4f4f8; --ink-2: #c0c3d1; --ink-3: #8e92a7;
+  --accent: #9085e9; --accent-ink: #0e0f15; --accent-soft: #272446;
+  --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181;
+  --good-ink: #0ca30c; --bad-ink: #e86a6a;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-padding-top: 12px; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-text-size-adjust: 100%; }
+button, input { font: inherit; color: inherit; }
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+ul { margin: 0; padding: 0; list-style: none; }
+.mono { font-family: var(--mono); }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: absolute; left: 12px; top: -48px; z-index: 20; background: var(--accent); color: var(--accent-ink); padding: 8px 12px; border-radius: 4px; }
+.skip:focus { top: 12px; }
+
+.wrap { max-width: 1500px; margin: 0 auto; padding-inline: 24px; }
+
+/* ---- top bar ---- */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; padding-block: 20px 14px; }
+.top h1 { font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
+.run { margin: 4px 0 0; color: var(--ink-3); font-size: 12.5px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 550; transition: background-color .12s, border-color .12s; }
+.btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
+
+/* ---- summary band ---- */
+.band { display: grid; grid-template-columns: minmax(230px, 1fr) minmax(380px, 2.3fr) minmax(210px, .9fr); gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.zone { padding: 16px 20px 18px; min-width: 0; }
+.zone + .zone { border-left: 1px solid var(--line); }
+.zone-title { font-size: 11px; line-height: 16px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+.line { margin: 0 0 10px; color: var(--ink-2); }
+.line b { color: var(--ink); font-weight: 650; }
+
+.seg { display: flex; gap: 2px; height: 14px; }
+.seg i { display: block; min-width: 3px; }
+.seg i:first-child { border-radius: 0; }
+.seg i:last-child { border-radius: 0 4px 4px 0; }
+.seg-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); }
+.seg-key li { display: inline-flex; align-items: center; gap: 6px; }
+.seg-key b { color: var(--ink); font-weight: 650; }
+.sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; background: var(--cx, var(--ink-3)); flex: none; }
+.why { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); }
+
+.cohort-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 4px 12px; margin-bottom: 4px; }
+.cohort-head .zone-title { margin: 0; }
+.cohort-note { font-size: 12.5px; line-height: 16px; color: var(--ink-3); }
+.strip { position: relative; margin-top: 6px; touch-action: manipulation; cursor: default; }
+.strip .axis { position: absolute; left: 0; right: 0; height: 1px; background: var(--line-strong); }
+.strip .tick { position: absolute; font-size: 11px; color: var(--ink-3); transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.strip .tickline { position: absolute; width: 1px; height: 5px; background: var(--line-strong); }
+.strip .med { position: absolute; top: 0; width: 1px; background: var(--ink-3); opacity: .55; }
+.strip .medlabel { position: absolute; top: 0; font-size: 11px; color: var(--ink-3); white-space: nowrap; transform: translateX(6px); }
+.dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--ink-3); box-shadow: 0 0 0 2px var(--surface); opacity: .8; transition: opacity .12s, transform .12s; }
+.dot.off { opacity: .22; }
+.dot.hot { opacity: 1; transform: scale(1.25); background: var(--ink); }
+.dot.sel { opacity: 1; background: var(--accent); width: 14px; height: 14px; z-index: 2; margin: -2px 0 0 -2px; }
+.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--ink); color: var(--page); padding: 6px 10px; border-radius: 6px; font-size: 12.5px; max-width: 260px; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+.tip b { font-size: 14px; margin-right: 2px; }
+.tip[hidden] { display: none; }
+
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
+.facts dt { color: var(--ink-3); }
+.facts dd { margin: 0; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.facts dd small { color: var(--ink-3); font-size: 12px; }
+
+.stages { margin: 10px 0 0; font-size: 12px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 2px 8px; }
+.stages b { color: var(--ink-2); font-weight: 600; }
+
+/* ---- work area ---- */
+.work { display: grid; grid-template-columns: minmax(340px, 440px) minmax(0, 1fr); gap: 20px; align-items: start; padding-block: 20px 28px; }
+.list-pane { position: sticky; top: 12px; max-height: calc(100vh - 24px); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.pane-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: 0 -14px; padding: 0 14px; }
+.tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 6px 10px 8px; margin-bottom: -1px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--ink-3); transition: color .12s, border-color .12s; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .n { font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.filters input[type=search] { flex: 1 1 150px; min-width: 0; background: var(--page); border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 10px; }
+.filters input[type=search]::placeholder { color: var(--ink-3); }
+.filters label { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); }
+.filters input[type=range] { width: 96px; accent-color: var(--accent); }
+.minv { min-width: 2ch; text-align: right; font-weight: 650; color: var(--ink); }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 11.5px; color: var(--ink-2); }
+.legend li { display: inline-flex; align-items: center; gap: 5px; }
+.count { font-size: 12px; color: var(--ink-3); }
+
+.list { overflow: auto; overscroll-behavior: contain; min-height: 0; }
+.row { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 11px 14px 12px 8px; cursor: pointer; transition: background-color .12s; }
+.row:hover { background: var(--surface-2); }
+.row[aria-current="true"] { background: var(--accent-soft); }
+.rk { text-align: right; padding-right: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; font-size: 12.5px; line-height: 21px; }
+.row[aria-current="true"] .rk { color: var(--accent); font-weight: 700; }
+.who { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; min-width: 0; }
+.nm { font-weight: 620; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc { font-weight: 700; font-variant-numeric: tabular-nums; }
+.comp { display: flex; gap: 2px; height: 6px; margin: 7px 0 6px; background: var(--line); border-radius: 0 3px 3px 0; overflow: hidden; }
+.comp i { display: block; height: 100%; background: var(--cx); min-width: 2px; }
+.comp i:last-child { border-radius: 0 3px 3px 0; }
+.sn { color: var(--ink-2); font-size: 12.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.tags { display: block; margin-top: 4px; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tags .hit { color: var(--accent); font-weight: 700; }
+.empty { padding: 28px 16px; color: var(--ink-3); text-align: center; }
+
+/* ---- inspector ---- */
+.insp { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 22px 26px 28px; min-width: 0; }
+.i-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px 28px; align-items: flex-start; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.i-id { min-width: 0; flex: 1 1 280px; }
+.i-id h2 { font-size: 24px; font-weight: 680; letter-spacing: -0.015em; line-height: 1.2; overflow-wrap: anywhere; }
+.i-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; color: var(--ink-2); min-width: 0; }
+.i-meta .mono { font-size: 12px; color: var(--ink-3); overflow-wrap: anywhere; }
+.badge { display: inline-block; font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--ink-2); }
+.badge.llm { color: var(--accent); border-color: var(--accent); }
+.badge.bad { color: var(--bad-ink); border-color: var(--bad); }
+.hero { text-align: right; }
+.hero-n { font-size: 56px; font-weight: 720; letter-spacing: -0.03em; line-height: 1; }
+.hero-d { font-size: 16px; color: var(--ink-3); margin-left: 4px; font-weight: 500; }
+.hero-r { margin-top: 6px; font-size: 13px; color: var(--ink-2); }
+.hero-r b { color: var(--ink); }
+.sec { padding-top: 20px; }
+.sec h3 { font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+.cat { padding: 8px 0 6px; }
+.cat-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 5px; }
+.cat-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 580; }
+.cat-val { font-variant-numeric: tabular-nums; color: var(--ink-3); }
+.cat-val b { color: var(--ink); font-size: 15px; }
+.meter { height: 8px; background: color-mix(in srgb, var(--cx) 16%, var(--surface)); }
+.meter i { display: block; height: 100%; background: var(--cx); border-radius: 0 4px 4px 0; }
+details { margin-top: 4px; }
+summary { cursor: pointer; font-size: 12.5px; color: var(--ink-3); padding: 2px 0; width: fit-content; }
+summary:hover { color: var(--ink); }
+summary .c { font-variant-numeric: tabular-nums; }
+.quotes { margin: 6px 0 4px; padding: 0 0 0 12px; border-left: 1px solid var(--line-strong); display: grid; gap: 4px; }
+.quotes li { font-size: 12.5px; color: var(--ink-2); overflow-wrap: anywhere; }
+.quotes li.sub { margin-left: 14px; font-family: var(--mono); font-size: 12px; }
+.pen { margin-top: 10px; padding: 10px 0 2px; border-top: 1px solid var(--line); }
+.pen-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
+.pen-head .v { color: var(--bad-ink); font-variant-numeric: tabular-nums; font-weight: 700; }
+.proj { margin: 0; color: var(--ink); font-size: 14.5px; line-height: 1.55; overflow-wrap: anywhere; max-width: 78ch; }
+.proj .sig { display: block; margin-top: 6px; color: var(--ink-3); font-size: 12.5px; }
+.kv { display: grid; grid-template-columns: minmax(130px, 190px) 1fr; gap: 8px 16px; margin: 0; font-size: 13.5px; align-items: center; }
+.kv dt { color: var(--ink-3); }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.pips { display: inline-flex; gap: 2px; vertical-align: middle; margin-right: 8px; }
+.pips i { width: 12px; height: 8px; background: color-mix(in srgb, var(--c4) 18%, var(--surface)); }
+.pips i.on { background: var(--c4); }
+.repos { display: flex; flex-wrap: wrap; gap: 2px 12px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+.gh-note { margin: 10px 0 0; color: var(--ink-3); font-size: 12.5px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 36px; }
+.sec .two-h { margin: 0 0 6px; font-size: 13px; font-weight: 650; letter-spacing: 0; text-transform: none; color: var(--ink); display: flex; align-items: baseline; gap: 8px; }
+.two-h .n { color: var(--ink-3); font-weight: 500; }
+.marks { display: grid; gap: 6px; }
+.marks li { position: relative; padding-left: 20px; overflow-wrap: anywhere; }
+.marks li::before { position: absolute; left: 0; top: 0; width: 14px; text-align: center; font-family: var(--mono); font-weight: 800; }
+.marks.good li::before { content: "+"; color: var(--good-ink); }
+.marks.bad li::before { content: "\2212"; color: var(--bad-ink); }
+.none { color: var(--ink-3); }
+.reasons { display: grid; gap: 8px; }
+.reasons li { position: relative; padding: 0 0 0 20px; overflow-wrap: anywhere; }
+.reasons li::before { content: "\2212"; position: absolute; left: 0; width: 14px; text-align: center; font-family: var(--mono); font-weight: 800; color: var(--bad-ink); }
+.evl { display: grid; gap: 6px; }
+.evl li { font-size: 13px; color: var(--ink-2); padding-left: 12px; border-left: 1px solid var(--line-strong); overflow-wrap: anywhere; }
+.skills { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.skills li { font-size: 12.5px; padding: 1px 8px; border: 1px solid var(--line-strong); border-radius: 4px; color: var(--ink-2); }
+.hint { margin: 16px 0 0; color: var(--ink-3); font-size: 12.5px; max-width: 70ch; }
+.foot { padding-block: 0 24px; color: var(--ink-3); font-size: 12px; }
+
+@media (max-width: 1180px) {
+  .band { grid-template-columns: 1fr 1fr; }
+  .band .zone:nth-child(2) { grid-column: 1 / -1; grid-row: 2; border-left: 0; border-top: 1px solid var(--line); }
+  .band .zone:nth-child(3) { border-left: 1px solid var(--line); }
+}
+@media (max-width: 900px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .list-pane { position: static; max-height: none; }
+  .list { max-height: 60vh; }
+  .two { grid-template-columns: 1fr; }
+  .kv { grid-template-columns: 120px 1fr; }
+  .hero { text-align: left; }
+}
+@media (max-width: 640px) {
+  .wrap { padding-inline: 16px; }
+  .band { grid-template-columns: 1fr; }
+  .band .zone + .zone, .band .zone:nth-child(2), .band .zone:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); grid-column: auto; grid-row: auto; }
+  .insp { padding: 18px 16px 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+@media print {
+  .actions, .filters, .tabs, .legend, .foot, .skip { display: none; }
+  .list-pane { position: static; max-height: none; }
+  .list { max-height: none; overflow: visible; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#list-panel">Skip to Candidate List</a>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Resume Screening Report</h1>
+      <p class="run" id="run"></p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="export-csv" type="button" title="Download the candidates currently listed as CSV">Export Shown (CSV)</button>
+      <button class="btn" id="export-json" type="button" title="Download the full results.json">Download JSON</button>
+      <button class="btn" id="theme" type="button" aria-label="Toggle light or dark theme">Theme</button>
+    </div>
+  </header>
+
+  <section class="band" aria-label="Batch summary">
+    <div class="zone" id="funnel"></div>
+    <div class="zone" id="cohort"></div>
+    <div class="zone" id="facts"></div>
+  </section>
+  <p class="stages" id="stages"></p>
+
+  <main class="work">
+    <section class="list-pane" aria-label="Candidates">
+      <div class="pane-head">
+        <div class="tabs" role="tablist" id="tabs" aria-label="Candidate groups"></div>
+        <div class="filters">
+          <input type="search" id="q" name="q" autocomplete="off" spellcheck="false" placeholder="Search name, skill, email…" aria-label="Search candidates">
+          <label id="min-wrap" for="min">Min Score <input type="range" id="min" name="min" min="0" max="100" step="5" value="0"> <span class="minv num" id="min-val">0</span></label>
+        </div>
+        <ul class="legend" id="legend" aria-label="Score colour key"></ul>
+        <div class="count" id="count" aria-live="polite"></div>
+      </div>
+      <div class="list" id="list-panel" role="tabpanel" tabindex="-1" aria-label="Candidate list"></div>
+    </section>
+    <section class="insp" id="inspector" aria-label="Candidate details"></section>
+  </main>
+  <p class="foot">Every point is backed by a quote from the resume: open “Why These Points” on any category. Arrow keys move through the list, / jumps to search, and the address bar keeps your selection so you can share a link.</p>
+</div>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<div class="sr" id="announce" aria-live="polite"></div>
+
+<script id="data" type="application/json">__DATA_JSON__</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("data").textContent);
+const CATS = [
+  { key: "ai_project_depth", label: "AI / Agentic Depth", short: "AI", max: 40, tok: "--c1" },
+  { key: "python_backend", label: "Python & Backend", short: "Python", max: 30, tok: "--c2" },
+  { key: "cloud_fullstack", label: "Cloud & Full Stack", short: "Cloud", max: 15, tok: "--c3" },
+  { key: "github", label: "GitHub Activity", short: "GitHub", max: 10, tok: "--c4" },
+  { key: "engineering_depth", label: "Engineering Depth", short: "Engineering", max: 5, tok: "--c5" },
+];
+const state = { tab: "eligible", q: "", min: 0, sel: null };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const nf = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
+const num = (x) => nf.format(Math.round((+x || 0) * 10) / 10);
+const safeUrl = (u) => (/^https:\/\/github\.com\/[A-Za-z0-9-]+$/.test(u || "") ? u : null);
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } } };
+const S = D.summary || {};
+
+const lists = {
+  eligible: (D.ranked_candidates || []).map((c) => ({ ...c, _kind: "eligible" })),
+  rejected: (D.rejected_candidates || []).map((c) => ({ ...c, _kind: "rejected" })),
+  issues: [
+    ...(D.failed_files || []).map((c) => ({ ...c, _kind: "failed" })),
+    ...(D.duplicates || []).map((c) => ({ ...c, _kind: "duplicate" })),
+  ],
+};
+const everything = () => [...lists.eligible, ...lists.rejected, ...lists.issues];
+const nameOf = (c) => c.candidate_name || c.file;
+
+/* ------------------------------------------------------------------ url state */
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const tab = p.get("tab");
+  state.tab = lists[tab] ? tab : "eligible";
+  state.q = p.get("q") || "";
+  state.min = Math.max(0, Math.min(100, +p.get("min") || 0));
+  state.sel = p.get("c") || null;
+}
+function writeHash() {
+  const p = new URLSearchParams();
+  if (state.tab !== "eligible") p.set("tab", state.tab);
+  if (state.sel) p.set("c", state.sel);
+  if (state.q) p.set("q", state.q);
+  if (state.min) p.set("min", state.min);
+  const h = p.toString() ? "#" + p.toString() : "";
+  if (h === location.hash || (!h && !location.hash)) return;
+  try { history.replaceState(null, "", h || location.pathname + location.search); } catch { /* some sandboxes forbid it */ }
+}
+
+/* ------------------------------------------------------------------ header + summary */
+function renderRun() {
+  const r = D.run || {};
+  const when = D.generated_at ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(D.generated_at)) : "";
+  const llm = r.llm_enabled ? "LLM: " + String(r.llm).split(" via ")[0] : "Rules-only analysis";
+  $("run").textContent = [when, llm, "GitHub: " + (r.github || "n/a")].filter(Boolean).join("  ·  ");
+}
+
+function rejectionSplit() {
+  let py = 0, ai = 0, both = 0;
+  for (const c of lists.rejected) {
+    const rs = c.rejection_reasons || [];
+    const noPy = rs.some((r) => /python/i.test(r));
+    const noAi = rs.some((r) => /AI\/agentic|AI appears|machine learning/i.test(r));
+    py += noPy; ai += noAi; both += noPy && noAi;
+  }
+  return { py, ai, both };
+}
+
+function renderFunnel() {
+  const skipped = (S.failed_unreadable || 0) + (S.duplicates || 0);
+  const parts = [["Eligible", S.eligible || 0, "var(--accent)"], ["Rejected", S.rejected || 0, "var(--ink-3)"], ["Skipped", skipped, "var(--line-strong)"]].filter((p) => p[1] > 0);
+  const sp = rejectionSplit();
+  $("funnel").innerHTML = `<h2 class="zone-title">Batch Outcome</h2>
+    <p class="line"><b class="num">${esc(S.total_files)}</b> resumes screened, <b class="num">${esc(S.parsed_successfully)}</b> parsed</p>
+    <div class="seg" role="img" aria-label="${esc(parts.map((p) => p[1] + " " + p[0].toLowerCase()).join(", "))}">${parts.map(([l, n, col]) => `<i style="flex:${n};background:${col}" title="${esc(l)}: ${n}"></i>`).join("")}</div>
+    <ul class="seg-key">${parts.map(([l, n, col]) => `<li><span class="sw" style="--cx:${col}"></span><b class="num">${n}</b> ${esc(l)}</li>`).join("")}</ul>
+    ${S.rejected ? `<p class="why">Why rejected: <b class="num">${sp.py}</b> lack Python, <b class="num">${sp.ai}</b> lack an AI project, <b class="num">${sp.both}</b> lack both.</p>` : ""}`;
+}
+
+function renderFacts() {
+  const am = S.analysis_mode || {}, gh = S.github_enrichment || {};
+  const ghTotal = Object.values(gh).reduce((a, b) => a + b, 0);
+  const rows = [
+    ["Analysis", `<span class="num">${am.llm || 0}</span> LLM, <span class="num">${am.rules_fallback || 0}</span> rules`],
+    ["GitHub", `<span class="num">${gh.ok || 0}</span> of <span class="num">${ghTotal}</span> profiles`],
+    ["Duplicates", `<span class="num">${S.duplicates || 0}</span> <small>files skipped</small>`],
+    ["Failures", `<span class="num">${S.failed_unreadable || 0}</span> <small>unreadable files</small>`],
+    ["Runtime", `<span class="num">${esc(S.runtime_seconds)}</span>&nbsp;s`],
+  ];
+  $("facts").innerHTML = `<h2 class="zone-title">Run</h2><dl class="facts">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`;
+  const t = S.stage_seconds || {};
+  const stages = [["Ingest", t.ingest_extract], ["Hard Filter", t.eligibility], ["Analysis", t.analysis], ["GitHub", t.github], ["Score & Rank", t.scoring]].filter((x) => x[1] !== undefined);
+  $("stages").innerHTML = stages.length ? `<span>Stages</span>` + stages.map(([n, s], i) => `${i ? "<span aria-hidden='true'>→</span>" : ""}<span><b>${esc(n)}</b> <span class="num">${esc(s)}</span>&nbsp;s</span>`).join("") : "";
+}
+
+/* ------------------------------------------------------------------ cohort strip (dot plot, one dot per candidate) */
+const strip = { dots: [], W: 0, pts: [] };
+function renderCohortShell() {
+  const sc = lists.eligible.map((c) => c.total_score || 0).sort((a, b) => a - b);
+  const med = sc.length ? (sc.length % 2 ? sc[(sc.length - 1) / 2] : (sc[sc.length / 2 - 1] + sc[sc.length / 2]) / 2) : null;
+  strip.median = med;
+  $("cohort").innerHTML = `<div class="cohort-head"><h2 class="zone-title">Score Distribution</h2>
+      <span class="cohort-note">${lists.eligible.length} eligible candidates${med === null ? "" : `, median <b class="num">${num(med)}</b>`}. Each dot is one candidate; click a dot to open them.</span></div>
+    <span class="sr" id="strip-hint">Use the left and right arrow keys to step through candidates by score.</span>
+    <div class="strip" id="strip" role="group" tabindex="0" aria-describedby="strip-hint" aria-label="Score distribution of eligible candidates. The candidate list carries the same data."></div>`;
+  strip.dots = lists.eligible.map((c) => {
+    const d = document.createElement("div");
+    d.className = "dot";
+    d.dataset.file = c.file;
+    return d;
+  });
+  const host = $("strip");
+  strip.dots.forEach((d) => host.appendChild(d));
+  ["axis", "med", "medlabel"].forEach((cls) => { const e = document.createElement("div"); e.className = cls; e.id = "strip-" + cls; host.appendChild(e); });
+  [0, 25, 50, 75, 100].forEach((t) => {
+    const l = document.createElement("div"); l.className = "tickline"; l.dataset.t = t; host.appendChild(l);
+    const e = document.createElement("div"); e.className = "tick"; e.dataset.t = t; e.textContent = t; host.appendChild(e);
+  });
+  host.addEventListener("pointermove", stripMove);
+  host.addEventListener("pointerleave", () => { hideTip(); strip.dots.forEach((d) => d.classList.remove("hot")); });
+  host.addEventListener("click", (e) => { const n = nearestDot(e); if (n) { state.tab = "eligible"; setSel(n.file); } });
+  host.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const shown = lists.eligible.filter(matches); // already in rank order, highest score first
+    if (!shown.length) return;
+    const i = shown.findIndex((c) => c.file === state.sel);
+    const n = i < 0 ? 0 : Math.max(0, Math.min(shown.length - 1, i + (e.key === "ArrowLeft" ? 1 : -1)));
+    state.tab = "eligible";
+    setSel(shown[n].file);
+  });
+}
+function layoutStrip() {
+  const host = $("strip");
+  if (!host) return;
+  const W = host.clientWidth;
+  if (!W) return;
+  const pad = 12, D0 = 10, step = D0 + 3, top = 18;
+  const pts = strip.dots.map((d, i) => ({ d, c: lists.eligible[i], x: pad + ((lists.eligible[i].total_score || 0) / 100) * (W - 2 * pad), row: 0 })).sort((a, b) => a.x - b.x);
+  const placed = [];
+  let maxRow = 0;
+  for (const p of pts) {
+    let row = 0;
+    while (placed.some((q) => q.row === row && Math.abs(q.x - p.x) < step)) row++;
+    p.row = row; placed.push(p); maxRow = Math.max(maxRow, row);
+  }
+  const plotH = (maxRow + 1) * step + 8;
+  const axisY = top + plotH;
+  host.style.height = axisY + 24 + "px";
+  pts.forEach((p) => { p.y = axisY - 6 - p.row * step - D0 / 2; p.d.style.left = p.x - D0 / 2 + "px"; p.d.style.top = p.y - D0 / 2 + "px"; p.d.setAttribute("aria-hidden", "true"); });
+  strip.pts = pts;
+  const axis = $("strip-axis"); axis.style.top = axisY + "px";
+  host.querySelectorAll(".tick").forEach((e) => { e.style.left = pad + (e.dataset.t / 100) * (W - 2 * pad) + "px"; e.style.top = axisY + 8 + "px"; });
+  host.querySelectorAll(".tickline").forEach((e) => { e.style.left = pad + (e.dataset.t / 100) * (W - 2 * pad) + "px"; e.style.top = axisY + "px"; });
+  if (strip.median !== null) {
+    const mx = pad + (strip.median / 100) * (W - 2 * pad);
+    const m = $("strip-med"); m.style.left = mx + "px"; m.style.height = axisY - 2 + "px";
+    const ml = $("strip-medlabel"); ml.textContent = "median " + num(strip.median); ml.style.left = mx + "px";
+  }
+}
+function nearestDot(e) {
+  const r = $("strip").getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  let best = null, bd = 18;
+  for (const p of strip.pts) {
+    if (p.d.classList.contains("off")) continue;
+    const dd = Math.hypot(p.x - x, p.y - y);
+    if (dd < bd) { bd = dd; best = p; }
+  }
+  return best ? best.c : null;
+}
+function stripMove(e) {
+  const c = nearestDot(e);
+  strip.dots.forEach((d) => d.classList.toggle("hot", !!c && d.dataset.file === c.file));
+  $("strip").style.cursor = c ? "pointer" : "default";
+  if (!c) { hideTip(); return; }
+  const tip = $("tip");
+  tip.hidden = false;
+  tip.textContent = "";
+  const b = document.createElement("b"); b.className = "num"; b.textContent = num(c.total_score);
+  tip.append(b, document.createTextNode(` ${nameOf(c)}  ·  rank ${c.rank}`));
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - 280) + "px";
+  tip.style.top = e.clientY + 16 + "px";
+}
+function hideTip() { $("tip").hidden = true; }
+function updateStrip() {
+  const shown = new Set(lists.eligible.filter(matches).map((c) => c.file));
+  strip.dots.forEach((d) => { d.classList.toggle("off", !shown.has(d.dataset.file)); d.classList.toggle("sel", d.dataset.file === state.sel); });
+}
+
+/* ------------------------------------------------------------------ list */
+function matches(c) {
+  if (c._kind === "eligible" && (c.total_score || 0) < state.min) return false;
+  const q = state.q.trim().toLowerCase();
+  if (!q) return true;
+  const hay = [c.candidate_name, c.email, c.file, c.github_url, (c.matched_skills || []).join(" "), c.project_summary, (c.rejection_reasons || []).join(" "), c.error].join(" ").toLowerCase();
+  return q.split(/\s+/).every((w) => hay.includes(w));
+}
+const visibleItems = () => lists[state.tab].filter(matches);
+
+function renderTabs() {
+  const defs = [["eligible", "Eligible", "Eligible candidates, highest score first"], ["rejected", "Rejected", "Candidates that failed the hard filter, with reasons"], ["issues", "Skipped", "Unreadable files and duplicates"]];
+  $("tabs").innerHTML = defs.map(([k, label, tip]) => `<button class="tab" role="tab" id="tab-${k}" type="button" data-tab="${k}" title="${tip}" aria-selected="${state.tab === k}" aria-controls="list-panel" tabindex="${state.tab === k ? 0 : -1}">${label} <span class="n">${lists[k].length}</span></button>`).join("");
+  $("list-panel").setAttribute("aria-labelledby", "tab-" + state.tab);
+  $("min-wrap").hidden = state.tab !== "eligible";
+  $("legend").hidden = state.tab !== "eligible";
+}
+function renderLegend() {
+  $("legend").innerHTML = CATS.map((c) => `<li style="--cx:var(${c.tok})"><span class="sw"></span>${esc(c.short)} <span class="num" style="color:var(--ink-3)">${c.max}</span></li>`).join("");
+}
+function composition(c) {
+  const b = c.score_breakdown || {};
+  return `<span class="comp" title="Points by category, before penalties">${CATS.filter((k) => (+b[k.key] || 0) > 0).map((k) => `<i style="width:${Math.min(100, +b[k.key])}%;--cx:var(${k.tok})"></i>`).join("")}</span>`;
+}
+function rowHtml(c) {
+  const on = state.sel === c.file;
+  const q = state.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const skills = (c.matched_skills || []).slice(0, 9).map((s) => (q.some((w) => s.toLowerCase().includes(w)) ? `<span class="hit">${esc(s)}</span>` : esc(s))).join(" · ");
+  if (c._kind === "eligible") {
+    return `<button type="button" class="row" data-file="${esc(c.file)}" aria-current="${on}">
+      <span class="rk">${c.rank}</span>
+      <span><span class="who"><span class="nm">${esc(nameOf(c))}</span><span class="sc">${num(c.total_score)}</span></span>${composition(c)}
+      <span class="sn">${esc(c.project_summary || "No project summary")}</span><span class="tags">${skills}</span></span></button>`;
+  }
+  const line = c._kind === "rejected" ? (c.rejection_reasons || []).join(" · ") : (c.error || "");
+  const tag = { rejected: "Out", failed: "Err", duplicate: "Dup" }[c._kind];
+  return `<button type="button" class="row" data-file="${esc(c.file)}" aria-current="${on}">
+    <span class="rk">${tag}</span>
+    <span><span class="who"><span class="nm">${esc(nameOf(c))}</span></span><span class="sn" style="margin-top:4px">${esc(line)}</span>${c._kind === "rejected" ? `<span class="tags">${skills}</span>` : ""}</span></button>`;
+}
+function renderList() {
+  const items = visibleItems();
+  $("count").textContent = `${items.length} of ${lists[state.tab].length} shown`;
+  const none = lists[state.tab].length
+    ? "No candidates match these filters. Clear the search or lower the minimum score."
+    : state.tab === "issues" ? "Every file was readable and none were duplicates." : "No candidates in this group.";
+  $("list-panel").innerHTML = items.length ? items.map(rowHtml).join("") : `<div class="empty">${none}</div>`;
+  if (!items.some((c) => c.file === state.sel)) state.sel = items.length ? items[0].file : null;
+  document.querySelectorAll(".row").forEach((n) => n.setAttribute("aria-current", n.dataset.file === state.sel ? "true" : "false"));
+  updateStrip();
+  renderInspector();
+  writeHash();
+}
+
+/* ------------------------------------------------------------------ inspector */
+const li = (arr, cls) => (arr && arr.length ? `<ul class="${cls}">${arr.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "");
+const quotes = (arr) => `<ul class="quotes">${arr.map((x) => `<li class="${/^\s{2,}/.test(x) ? "sub" : ""}">${esc(x.trim())}</li>`).join("")}</ul>`;
+
+function catRow(cat, c) {
+  const v = +(c.score_breakdown || {})[cat.key] || 0, ev = (c.score_evidence || {})[cat.key] || [];
+  return `<div class="cat" style="--cx:var(${cat.tok})">
+    <div class="cat-head"><span class="cat-name"><span class="sw"></span>${esc(cat.label)}</span><span class="cat-val"><b>${num(v)}</b> / ${cat.max}</span></div>
+    <div class="meter" role="meter" aria-label="${esc(cat.label)}" aria-valuemin="0" aria-valuemax="${cat.max}" aria-valuenow="${v}"><i style="width:${Math.min(100, (v / cat.max) * 100)}%"></i></div>
+    ${ev.length ? `<details><summary>Why These Points <span class="c">(${ev.length})</span></summary>${quotes(ev)}</details>` : ""}</div>`;
+}
+const pips = (n) => `<span class="pips" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span>`;
+
+function githubBlock(c) {
+  const g = c.github;
+  if (!g) return `<p class="none">No GitHub data for this candidate.</p>`;
+  const url = safeUrl(c.github_url);
+  const rows = [["Status", `${esc(g.status)}${g.from_cache ? ' <span class="none">(cached)</span>' : ""}`]];
+  if (g.username) rows.push(["Profile", url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">@${esc(g.username)}</a>` : esc(g.username)]);
+  if (g.status === "ok") {
+    rows.push(["Last public activity", esc(g.last_activity || "none found")],
+      ["Recent activity", `${pips(g.activity_points)}<span class="num">${num(g.activity_points)} / 5</span>`],
+      ["Maintained Python/AI repos", `${pips(g.repo_points)}<span class="num">${num(g.repo_points)} / 5</span> <span class="none">of ${esc(g.public_repos)} own public repos</span>`]);
+    if ((g.relevant_repos || []).length) rows.push(["Relevant repos", `<span class="repos">${g.relevant_repos.map((r) => `<span>${esc(r)}</span>`).join("")}</span>`]);
+    if ((g.matched_resume_projects || []).length) rows.push(["Resume projects on GitHub", g.matched_resume_projects.map(esc).join("<br>")]);
+  }
+  if (g.error) rows.push(["Note", esc(g.error)]);
+  return `<dl class="kv">${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join("")}</dl><p class="gh-note">${esc(g.summary || "")}</p>`;
+}
+function metaLine(c, extra) {
+  const url = safeUrl(c.github_url);
+  const out = [];
+  if (c.email) out.push(`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`);
+  if (url) out.push(`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">github.com/${esc(url.split("/").pop())}</a>`);
+  out.push(`<span class="mono" translate="no">${esc(c.file)}</span>`);
+  if (extra) out.push(extra);
+  return `<div class="i-meta">${out.join("")}</div>`;
+}
+function inspectorEligible(c) {
+  const b = c.score_breakdown || {}, pen = +b.penalties || 0, ev = c.eligibility_evidence || {};
+  const n = lists.eligible.length;
+  const badge = c.analysis_mode === "llm" ? `<span class="badge llm">LLM analysis</span>` : `<span class="badge">Rules analysis</span>`;
+  const sig = (c.project_summary || "").match(/\[signals:[^\]]*\]/);
+  const proj = (c.project_summary || "No project summary").replace(/\s*\[signals:[^\]]*\]/, "");
+  return `<div class="i-top"><div class="i-id"><h2>${esc(nameOf(c))}</h2>${metaLine(c, badge)}</div>
+      <div class="hero"><div><span class="hero-n">${num(c.total_score)}</span><span class="hero-d">/ 100</span></div><div class="hero-r">Rank <b class="num">${c.rank}</b> of <span class="num">${n}</span></div></div></div>
+    <div class="sec"><h3>Score Breakdown</h3>${CATS.map((k) => catRow(k, c)).join("")}
+      ${pen ? `<div class="pen"><div class="pen-head"><span>Penalties</span><span class="v">${num(pen)}</span></div>${li((c.score_evidence || {}).penalties, "marks bad")}</div>` : ""}</div>
+    <div class="sec"><h3>AI Project Evidence</h3><p class="proj">${esc(proj)}${sig ? `<span class="sig">${esc(sig[0].slice(1, -1))}</span>` : ""}</p></div>
+    <div class="sec"><h3>GitHub Enrichment</h3>${githubBlock(c)}</div>
+    <div class="sec two"><div><h3 class="two-h">Strengths <span class="n">${(c.strengths || []).length}</span></h3>${li(c.strengths, "marks good") || '<span class="none">None recorded</span>'}</div>
+      <div><h3 class="two-h">Concerns <span class="n">${(c.concerns || []).length}</span></h3>${li(c.concerns, "marks bad") || '<span class="none">None recorded</span>'}</div></div>
+    <div class="sec"><h3>Matched Skills</h3><ul class="skills">${(c.matched_skills || []).map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>
+    <div class="sec"><h3>Why This Candidate Passed the Hard Filter</h3>
+      <details open><summary>Python evidence <span class="c">(${(ev.python || []).length})</span></summary>${li(ev.python, "evl")}</details>
+      <details><summary>AI / agentic evidence <span class="c">(${(ev.ai || []).length})</span></summary>${li(ev.ai, "evl")}</details></div>
+    ${(c.analysis_notes || []).length ? `<div class="sec"><h3>Analysis Notes</h3>${li(c.analysis_notes, "evl")}</div>` : ""}`;
+}
+function inspectorRejected(c) {
+  const ev = c.eligibility_evidence || {};
+  return `<div class="i-top"><div class="i-id"><h2>${esc(nameOf(c))}</h2>${metaLine(c, '<span class="badge bad">Rejected by hard filter</span>')}</div></div>
+    <div class="sec"><h3>Rejection Reasons</h3>${li(c.rejection_reasons, "reasons")}</div>
+    <div class="sec"><h3>Matched Skills</h3>${(c.matched_skills || []).length ? `<ul class="skills">${c.matched_skills.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>` : '<span class="none">None detected</span>'}</div>
+    ${(ev.python || []).length ? `<div class="sec"><h3>Python Evidence Found</h3>${li(ev.python, "evl")}</div>` : ""}
+    ${(ev.ai || []).length ? `<div class="sec"><h3>AI Evidence Found</h3>${li(ev.ai, "evl")}</div>` : ""}
+    <p class="hint">The hard filter is rule-based and sits outside the LLM, so a well-written resume cannot talk its way past it.</p>`;
+}
+function inspectorIssue(c) {
+  return `<div class="i-top"><div class="i-id"><h2>${esc(nameOf(c))}</h2>${metaLine(c, `<span class="badge bad">${c._kind === "failed" ? "Unreadable" : "Duplicate"}</span>`)}</div></div>
+    <div class="sec"><h3>What Happened</h3><ul class="reasons"><li>${esc(c.error || "")}</li></ul>
+    <p class="hint">The batch continued and this file was recorded and skipped.${c.duplicate_of ? ` Kept: <span class="mono">${esc(c.duplicate_of)}</span>` : ""}</p></div>`;
+}
+function renderInspector() {
+  const root = $("inspector");
+  const c = everything().find((x) => x.file === state.sel);
+  if (!c) { root.innerHTML = `<div class="empty">Select a candidate to see the evidence behind their score.</div>`; return; }
+  root.innerHTML = c._kind === "eligible" ? inspectorEligible(c) : c._kind === "rejected" ? inspectorRejected(c) : inspectorIssue(c);
+  $("announce").textContent = c._kind === "eligible" ? `${nameOf(c)}, rank ${c.rank}, score ${num(c.total_score)}` : nameOf(c);
+}
+
+/* ------------------------------------------------------------------ actions */
+function setSel(file, scroll) {
+  state.sel = file;
+  renderTabs();
+  if ($("list-panel").querySelector(`.row[data-file="${CSS.escape(file)}"]`) === null) renderList();
+  else {
+    document.querySelectorAll(".row").forEach((n) => n.setAttribute("aria-current", n.dataset.file === file ? "true" : "false"));
+    updateStrip(); renderInspector(); writeHash();
+  }
+  const row = $("list-panel").querySelector(`.row[data-file="${CSS.escape(file)}"]`);
+  if (row && scroll !== false) row.scrollIntoView({ block: "nearest" });
+  const top = $("inspector").getBoundingClientRect().top;
+  if (top < 0) window.scrollTo({ top: window.scrollY + top - 12 });
+}
+function download(name, type, content) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const csvCell = (v) => { let s = String(v ?? ""); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return `"${s.replace(/"/g, '""')}"`; };
+
+$("tabs").addEventListener("click", (e) => { const t = e.target.closest(".tab"); if (!t) return; state.tab = t.dataset.tab; state.sel = null; renderTabs(); renderList(); });
+$("tabs").addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+  const keys = Object.keys(lists), i = keys.indexOf(state.tab), n = (i + (e.key === "ArrowRight" ? 1 : keys.length - 1)) % keys.length;
+  state.tab = keys[n]; state.sel = null; renderTabs(); renderList(); $("tab-" + keys[n]).focus();
+});
+$("list-panel").addEventListener("click", (e) => { const r = e.target.closest(".row"); if (r) setSel(r.dataset.file, false); });
+$("q").addEventListener("input", (e) => { state.q = e.target.value; renderList(); });
+$("min").addEventListener("input", (e) => { state.min = +e.target.value; $("min-val").textContent = e.target.value; renderList(); });
+$("export-json").addEventListener("click", () => download("results.json", "application/json", JSON.stringify(D, null, 2)));
+$("export-csv").addEventListener("click", () => {
+  const rows = visibleItems();
+  const head = ["rank", "candidate_name", "total_score", ...CATS.map((c) => c.key), "penalties", "email", "github_url", "analysis_mode", "file"];
+  const lines = [head.join(",")].concat(rows.map((c) => { const b = c.score_breakdown || {};
+    return [c.rank, c.candidate_name, c.total_score, ...CATS.map((k) => b[k.key]), b.penalties, c.email, c.github_url, c.analysis_mode, c.file].map(csvCell).join(","); }));
+  download(`candidates_${state.tab}.csv`, "text/csv", "﻿" + lines.join("\n"));
+});
+$("theme").addEventListener("click", () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = dark ? "light" : "dark"; document.documentElement.dataset.theme = next; store.set("screener-theme", next);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/" && document.activeElement !== $("q")) { e.preventDefault(); $("q").focus(); return; }
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  if (e.target.tagName === "INPUT" && e.target.type !== "search") return;
+  const items = visibleItems(); if (!items.length) return;
+  const i = items.findIndex((c) => c.file === state.sel);
+  const n = Math.max(0, Math.min(items.length - 1, (i < 0 ? 0 : i) + (e.key === "ArrowDown" ? 1 : -1)));
+  e.preventDefault(); setSel(items[n].file);
+});
+window.addEventListener("hashchange", () => { const keep = location.hash; readHash(); $("q").value = state.q; $("min").value = state.min; $("min-val").textContent = state.min; renderTabs(); renderList(); if (keep !== location.hash) writeHash(); });
+let resizeFrame = 0;
+new ResizeObserver(() => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(layoutStrip); }).observe($("cohort"));
+window.addEventListener("resize", layoutStrip);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) layoutStrip(); });
+
+const savedTheme = store.get("screener-theme"); if (savedTheme === "light" || savedTheme === "dark") document.documentElement.dataset.theme = savedTheme;
+readHash();
+$("q").value = state.q; $("min").value = state.min; $("min-val").textContent = state.min;
+renderRun(); renderFunnel(); renderFacts(); renderCohortShell(); renderLegend(); renderTabs(); renderList(); layoutStrip();
+</script>
+</body>
+</html>

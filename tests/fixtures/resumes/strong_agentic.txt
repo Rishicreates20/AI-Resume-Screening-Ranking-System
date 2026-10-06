@@ -1,0 +1,24 @@
+Asha Rao
+asha.rao@example.com | +91 98765 43210 | github.com/asharao-dev | linkedin.com/in/asharao
+
+SKILLS
+Python, FastAPI, asyncio, PostgreSQL, Redis, Docker, GCP, React, LangGraph, LangChain, pgvector
+
+PROJECTS
+Agentic Support Desk | Python, LangGraph, FastAPI, PostgreSQL, pgvector, React
+- Built a multi-agent LangGraph workflow with a router agent and tool calling into Jira and Slack APIs.
+- RAG over 12k support documents using pgvector embeddings with a reranking step.
+- Persisted conversation memory and agent state in PostgreSQL checkpoints.
+- Built an evaluation pipeline with RAGAS on a 200-question test set; answer accuracy improved 23%.
+- Async FastAPI backend with Redis caching and retries with exponential backoff; deployed on Cloud Run with Docker.
+
+Invoice Extraction Service | Python, FastAPI, Celery, Redis
+- Background job queue with Celery to parse invoices; structured logging and Prometheus monitoring.
+- pytest unit tests with 85% coverage.
+
+EXPERIENCE
+AI Engineering Intern, Foo Labs | May 2025 - Aug 2025
+- Built an LLM-powered document triage agent with function calling, used by 40 analysts.
+
+EDUCATION
+B.Tech Computer Science, XYZ University, 2026

@@ -1,0 +1,16 @@
+Arjun Nair
+arjun.nair@example.com | github.com/arjunnair
+
+SKILLS
+Python, PyTorch, scikit-learn, Pandas, NumPy, Flask
+
+PROJECTS
+Blood Cell Classifier | Python, PyTorch, Flask
+- Trained a CNN on 12,000 microscopy images reaching 94% accuracy on the held-out test set.
+- Data augmentation and preprocessing pipeline; served predictions with a Flask REST API.
+
+House Price Prediction | scikit-learn
+- Random forest regression on Kaggle housing data.
+
+EDUCATION
+B.Tech ECE, STU University, 2026

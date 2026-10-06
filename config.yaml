@@ -1,0 +1,302 @@
+# Resume screener configuration.
+# Business logic reads everything tunable from here: model, thresholds, weights, term lists.
+# Secrets never live here; they come from environment variables (see .env.example).
+#
+# Term matching rules (see src/screener/matching.py):
+#   - Matching is word-bounded: "ai" never matches inside "maintain".
+#   - Plain terms are case-insensitive, EXCEPT short ALL-CAPS terms ("RAG", "LLM"),
+#     which are case-sensitive so "rag" or "LL.M." (law degree) do not match.
+#   - Spaces, hyphens and dots inside a term are flexible: "tool calling" also
+#     matches "tool-calling"; "next.js" also matches "nextjs".
+#   - A trailing "s" is optional: "embedding" matches "embeddings".
+#   - Prefix "re:" for a raw (case-insensitive) regular expression.
+
+llm:
+  enabled: true
+  # Any OpenAI-compatible chat-completions endpoint works (Groq, OpenAI, OpenRouter,
+  # Gemini's OpenAI-compatible endpoint). Swap provider = change these 3 lines.
+  base_url: https://api.groq.com/openai/v1
+  model: openai/gpt-oss-120b
+  api_key_env: GROQ_API_KEY
+  temperature: 0
+  # "json_schema" sends the Pydantic schema to the API. If the model rejects it,
+  # the adapter downgrades to "json_object" for the rest of the run automatically.
+  structured_output_mode: json_schema
+  # Extra provider-specific request fields. Dropped automatically if the API rejects them.
+  extra_params:
+    reasoning_effort: low
+  max_output_tokens: 3000
+  timeout_seconds: 90
+  max_retries: 6            # retries on 429 / 5xx / invalid JSON (free tiers throttle often)
+  max_retry_wait_seconds: 60
+  max_concurrency: 2        # free tiers limit tokens per minute; keep this small
+  max_resume_chars: 12000   # longer resumes drop education/certification sections first, then truncate
+  cache_dir: .cache/llm
+
+github:
+  enabled: true
+  api_url: https://api.github.com
+  token_env: GITHUB_TOKEN   # optional; raises the limit from 60 to 5000 requests/hour
+  timeout_seconds: 10
+  max_concurrency: 4
+  cache_dir: .cache/github
+  cache_ttl_hours: 24
+  # 0-5 points: most recent public activity (latest push or public event)
+  activity_points:          # days since last activity -> points (first match wins)
+    - {within_days: 30, points: 5}
+    - {within_days: 90, points: 3}
+    - {within_days: 180, points: 1}
+  # 0-5 points: one point per maintained (pushed within N days), non-fork repo
+  # that is Python or AI-related (language, name, description or topics).
+  maintained_within_days: 365
+  max_repo_points: 5
+  ai_repo_terms: [llm, rag, agent, agents, agentic, langchain, langgraph, llamaindex, gpt,
+                  openai, gemini, chatbot, embedding, embeddings, vector, retrieval,
+                  ml, ai, nlp, transformer, transformers, genai, mcp, multi-agent]
+
+eligibility:
+  # Text found ONLY in these sections never counts as Python/AI evidence
+  # (an "AI & ML" degree specialisation or a Coursera certificate is not a project).
+  excluded_sections: [education, certifications, interests]
+  python_terms: [python, python3]
+  # Libraries that only exist in Python: using them is Python evidence.
+  python_implied_terms: [fastapi, django, flask, pandas, numpy, pytorch, scikit-learn, sklearn,
+                         pydantic, streamlit, sqlalchemy, celery, pytest, matplotlib, scipy,
+                         jupyter, keras, tensorflow, asyncio, aiohttp, "hugging face transformers"]
+  # LLM / RAG / agentic evidence (the core requirement).
+  ai_agentic_terms:
+    - langchain
+    - langgraph
+    - langsmith
+    - google adk
+    - agent development kit
+    - llamaindex
+    - llama index
+    - crewai
+    - autogen
+    - semantic kernel
+    - haystack
+    - dspy
+    - smolagents
+    - openai agents sdk
+    - RAG
+    - retrieval augmented generation
+    - retrieval-augmented generation
+    - embedding
+    - vector search
+    - vector database
+    - vector db
+    - vector store
+    - semantic search
+    - semantic chunking
+    - faiss
+    - chromadb
+    - chroma db
+    - pinecone
+    - weaviate
+    - qdrant
+    - milvus
+    - pgvector
+    - tool calling
+    - function calling
+    - tool use
+    - multi agent
+    - multi-agent
+    - agentic
+    - ai agent
+    - llm agent
+    - autonomous agent
+    - LLM
+    - large language model
+    - openai
+    - gpt-3.5
+    - gpt-4
+    - gpt-4o
+    - gpt-5
+    - gemini api
+    - google gemini
+    - "re:gemini[\\s-]*(?:pro|flash|\\d)"
+    - anthropic
+    - claude api
+    - hugging face
+    - huggingface
+    - ollama
+    - llama 2
+    - llama 3
+    - mistral
+    - groq
+    - prompt engineering
+    - generative ai
+    - genai
+    - gen ai
+    - model context protocol
+    - MCP
+    - vertex ai
+    - amazon bedrock
+    - ragas
+    - reranker
+    - reranking
+    - fine-tuned llm
+    - "re:(?-i:Q?LoRA)"
+  # Classical ML / DL evidence. Passes the gate (it IS AI) but caps AI depth score.
+  classical_ml_terms: [machine learning, deep learning, neural network, tensorflow, pytorch, keras,
+                       scikit-learn, sklearn, xgboost, lightgbm, CNN, RNN, LSTM, NLP,
+                       natural language processing, computer vision, opencv, yolo, BERT,
+                       random forest, logistic regression, transformer model, vision transformer, chatbot, image classification,
+                       object detection, sentiment analysis, rasa, dialogflow]
+  # If false, candidates with only classical-ML evidence are rejected at the gate.
+  allow_classical_ml_only: true
+  # Classical ML must appear in a project or job (not just a skills line such as "Machine Learning
+  # Basics") to pass the gate. LLM/RAG/agent terms are specific enough to count anywhere.
+  classical_ml_requires_applied_evidence: true
+
+# Canonical skill names reported in "matched_skills". Aliases follow the term rules above.
+skills_taxonomy:
+  Python: [python, python3]
+  Java: [java]
+  JavaScript: [javascript, js, ecmascript]
+  TypeScript: [typescript]
+  C++: ["c++", cpp]
+  Go: [golang]
+  SQL: [sql]
+  FastAPI: [fastapi]
+  Flask: [flask]
+  Django: [django, django rest framework, drf]
+  Node.js: [node.js, nodejs, express.js, expressjs]
+  Spring Boot: [spring boot]
+  React: [react, react.js, reactjs]
+  Next.js: [next.js, nextjs]
+  PostgreSQL: [postgresql, postgres]
+  MySQL: [mysql]
+  MongoDB: [mongodb, mongo]
+  Redis: [redis]
+  SQLite: [sqlite]
+  Async/asyncio: [asyncio, async, aiohttp, async/await]
+  Celery: [celery]
+  Kafka: [kafka]
+  RabbitMQ: [rabbitmq]
+  Docker: [docker, dockerfile, docker compose]
+  Kubernetes: [kubernetes, k8s]
+  GCP: [gcp, google cloud, google cloud platform, cloud run, bigquery, gke, cloud functions]
+  AWS: [aws, amazon web services, ec2, lambda, s3]
+  Azure: [azure]
+  CI/CD: [ci/cd, github actions, jenkins, gitlab ci]
+  LangChain: [langchain]
+  LangGraph: [langgraph]
+  LlamaIndex: [llamaindex, llama index]
+  Google ADK: [google adk, agent development kit]
+  CrewAI: [crewai]
+  AutoGen: [autogen]
+  RAG: [RAG, retrieval augmented generation, retrieval-augmented generation]
+  Embeddings / Vector search: [embedding, vector search, vector database, vector db, vector store, semantic search]
+  FAISS: [faiss]
+  ChromaDB: [chromadb, chroma db, chroma]
+  Pinecone: [pinecone]
+  Qdrant: [qdrant]
+  pgvector: [pgvector]
+  Tool calling: [tool calling, function calling]
+  Multi-agent: [multi agent, multi-agent]
+  OpenAI API: [openai, gpt-4, gpt-4o, gpt-3.5]
+  Gemini API: [gemini api, google gemini, vertex ai]
+  Hugging Face: [hugging face, huggingface]
+  Ollama: [ollama]
+  MCP: [MCP, model context protocol]
+  PyTorch: [pytorch]
+  TensorFlow: [tensorflow, keras]
+  scikit-learn: [scikit-learn, sklearn]
+  Pandas: [pandas]
+  NumPy: [numpy]
+  Streamlit: [streamlit]
+  Pytest: [pytest]
+
+scoring:
+  # Points for a skill seen only in a skills list, as a fraction of full points.
+  listed_only_multiplier: 0.5
+
+  ai_project_depth:
+    max: 40
+    # Signals are judged per project (by the LLM, or by keyword rules as fallback).
+    # A project's score = sum of its verified signals. The candidate gets their best
+    # project's score plus a small bonus for a second substantial AI project.
+    signals:
+      retrieval: 8        # RAG, embeddings, vector search
+      tool_calling: 7     # tools / function calling
+      orchestration: 7    # multi-step or multi-agent workflow, routing, planning
+      evaluation: 6       # measured output quality, eval sets, metrics
+      state_memory: 5     # memory, conversation state, checkpoints
+      business_logic: 5   # real data processing / backend / product logic around the model
+      shipped: 2          # deployed, real users, measured impact
+    second_project_bonus_max: 5
+    second_project_bonus_fraction: 0.25
+    classical_ml_project_cap: 15      # CNN/sklearn projects are AI, but not agentic systems
+    skills_only_points: 3             # AI framework listed in skills with no project using it
+
+  python_backend:
+    max: 30
+    items:
+      - {name: Python, points: 6, terms: [python, python3], implied_by_eligibility_libs: true}
+      - {name: FastAPI, points: 6, terms: [fastapi], partial_points: 4, partial_terms: [flask, django, django rest framework]}
+      - {name: Async programming, points: 6, terms: [asyncio, async, aiohttp, async/await, asynchronous]}
+      - {name: PostgreSQL, points: 6, terms: [postgresql, postgres, pgvector, supabase], partial_points: 3, partial_terms: [mysql, sqlite, mongodb, sql, dynamodb, firestore]}
+      - {name: Redis, points: 6, terms: [redis], partial_points: 3, partial_terms: [memcached]}
+
+  cloud_fullstack:
+    max: 15
+    items:
+      - {name: GCP, points: 5, terms: [gcp, google cloud, cloud run, bigquery, gke, vertex ai, cloud functions], partial_points: 3, partial_terms: [aws, azure, ec2, aws lambda, s3, firebase]}
+      - {name: Docker, points: 4, terms: [docker, dockerfile, docker compose, dockerized, containerized]}
+      - {name: Deployment, points: 4, terms: [deployed, deployment, deploy, ci/cd, github actions, kubernetes, k8s, heroku, vercel, render.com, railway, netlify, nginx, production, hosted]}
+    # React/Next.js only count when used in the same project as a backend.
+    fullstack_points: 2
+    frontend_terms: [react, react.js, next.js, nextjs]
+    backend_terms: [fastapi, flask, django, node.js, nodejs, express, spring boot, backend, rest api, api endpoint, graphql, postgresql, mongodb]
+
+  engineering_depth:
+    max: 5
+    # One point per category evidenced in projects/experience (not skills lists).
+    items:
+      testing: [pytest, unittest, unit test, unit testing, integration test, test coverage, tdd, test suite]
+      caching: [cache, caching, cached, memoization, lru cache]
+      queues: [queue, celery, rabbitmq, kafka, sqs, pub/sub, background job, background worker, task queue]
+      observability: [logging, monitoring, prometheus, grafana, opentelemetry, tracing, sentry, observability, langsmith]
+      concurrency: [concurrency, concurrent, multithreading, multi-threaded, multiprocessing, asyncio, thread pool, parallel processing]
+      failure_handling: [retry, retries, backoff, fault tolerant, fault tolerance, error handling, circuit breaker, idempotent, rate limiting, fallback, graceful degradation]
+      architecture: [microservice, microservices, system design, event-driven, clean architecture, layered architecture, modular architecture, scalable architecture, design pattern]
+
+  # Without at least one LLM/agentic project showing a real depth signal (retrieval, tools,
+  # orchestration, state or evaluation), the total is capped so strong generalists cannot
+  # outrank AI builders (brief section 4). Set to null to disable.
+  no_meaningful_ai_total_cap: 30
+
+  penalties:
+    max_total: 15
+    all_ai_projects_thin_wrapper: 10   # every LLM project is a thin API wrapper
+    some_ai_projects_thin_wrapper: 5   # at least one is, but not all
+    tutorial_style_per_project: 2      # listed without implementation details / ownership
+    tutorial_style_max: 5
+
+  # Keyword lists the rules fallback uses to detect project signals when the LLM is
+  # unavailable. Deliberately simple; the LLM is the primary judge of project depth.
+  rules_fallback_signals:
+    retrieval: [RAG, retrieval, retriever, embedding, vector search, vector database, vector db, vector store,
+                semantic search, faiss, chromadb, chroma, pinecone, qdrant, weaviate, milvus, pgvector,
+                llamaindex, knowledge base, reranker, reranking]
+    tool_calling: [tool calling, function calling, tool use, tool-using, custom tools, external tools,
+                   tool integration, MCP, model context protocol, web search tool]
+    orchestration: [langgraph, multi agent, multi-agent, multiple agents, agentic workflow, orchestration,
+                    orchestrator, orchestrated, crewai, autogen, google adk, agent development kit, planner,
+                    router, supervisor agent, react agent, state machine, workflow graph]
+    evaluation: [evaluation, evaluated, eval, ragas, deepeval, benchmark, benchmarked, accuracy, precision,
+                 recall, f1, f1-score, bleu, rouge, hallucination, langsmith, a/b test, test set, metrics]
+    state_memory: [memory, conversation history, chat history, stateful, state management, session state,
+                   checkpoint, checkpointing, long-term memory, persistent state, context management]
+    business_logic: [database, postgresql, postgres, mongodb, mysql, redis, fastapi, flask, django, rest api,
+                     backend, data pipeline, etl, ingestion, ingest, parsing, preprocessing, scraping,
+                     automation, dashboard, crm, authentication, payment, scheduling, analytics, sql]
+    shipped: [deployed, production, hosted, cloud run, vercel, heroku, "re:\\d+(?:\\.\\d+)?\\s*%",
+              "re:\\d+[kKmM]?\\+?\\s+(?:active\\s+)?(?:users|customers|requests|documents|docs|queries)"]
+  tutorial_terms: [tutorial, guided project, course project, followed along, coursera project, udemy]
+  tutorial_max_detail_chars: 80   # an entry with less detail than this is "listed without details"
+
+output:
+  top_n_console: 15

@@ -1,0 +1,16 @@
+PRIYA MENON
+priya.menon@example.com | github.com/priya-menon
+
+TECHNICAL SKILLS
+JavaScript, TypeScript, React, Next.js, Node.js, Python, Django, MongoDB
+
+PROJECTS
+StudyBuddy RAG Assistant | Next.js, Django, Python, ChromaDB, Gemini API
+- RAG assistant over course PDFs: chunking, embeddings in ChromaDB and semantic search.
+- Django REST backend with MongoDB; Next.js frontend; deployed on Vercel.
+
+Portfolio Website | Next.js
+- Personal site.
+
+EDUCATION
+B.Tech CSE, UVW University, 2026

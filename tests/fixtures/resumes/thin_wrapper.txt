@@ -1,0 +1,15 @@
+Neha Gupta
+neha.gupta@example.com
+
+SKILLS
+Python, Streamlit, OpenAI, HTML, CSS
+
+PROJECTS
+AI Chat App | Python, Streamlit, OpenAI API
+- A chatbot that sends the user's question to the OpenAI API and displays the answer.
+
+Weather App
+- Python, Flask
+
+EDUCATION
+B.Sc Computer Science, LMN University, 2026

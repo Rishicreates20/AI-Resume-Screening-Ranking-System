@@ -1,0 +1,16 @@
+Vikram Shah
+vikram.shah@example.com | github.com/vikshah
+
+SKILLS
+Python, FastAPI, PostgreSQL, Redis, Docker, Kubernetes, LangChain
+
+PROJECTS
+High-throughput URL Shortener | Python, FastAPI, Redis, PostgreSQL
+- Async FastAPI service handling 5k requests/sec with Redis caching and PostgreSQL storage.
+- Rate limiting, retries and structured logging; pytest integration tests; deployed with Docker on GCP Cloud Run.
+
+Job Queue Dashboard | Python, Celery, RabbitMQ
+- Built a task queue monitoring dashboard with Celery workers and concurrency controls.
+
+EDUCATION
+B.Tech Information Technology, PQR College, 2026

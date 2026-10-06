@@ -1,0 +1,17 @@
+.env
+.cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Candidate resumes contain personal data: keep them out of version control.
+resumes/*
+!resumes/.gitkeep
+
+.claude/
+
+# Real candidate data (names, emails, scores) from the company's dataset. This repository is public: never commit it.
+output/
+docs/*.docx

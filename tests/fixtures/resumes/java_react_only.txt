@@ -1,0 +1,16 @@
+Rahul Verma
+rahul.verma@example.com | github.com/rahulv
+
+SKILLS
+Java, Spring Boot, React, Next.js, MySQL, JavaScript
+
+PROJECTS
+E-commerce Platform | Java, Spring Boot, React
+- Built REST APIs with Spring Boot and a React storefront with cart and payments.
+- Deployed on AWS EC2 with Docker.
+
+EDUCATION
+B.Tech Computer Science and Engineering (AI & ML), ABC Institute, 2026
+
+CERTIFICATIONS
+Python for Everybody - Coursera
