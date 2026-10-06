@@ -55,6 +55,8 @@ The console prints a ranked table and the reason for each rejection.
 
 **On the 50 provided resumes** the gate is deterministic, so these counts hold in every mode: 50 parsed, 0 failed, **40 eligible, 10 rejected**. All 10 rejections were checked against the resume text: 7 have no Python at all (JavaScript, Java or Node only, two of them with LLM/RAG projects built in TypeScript), and 3 have Python but no AI project (one lists only "Machine Learning Basics" in a skills line).
 
+**Generated results.** The results for those 50 resumes are in [`results/`](results/results.json): `results.json`, `results.csv` and the HTML dashboard `results.html`. This copy is anonymised (names, emails, phone numbers, GitHub usernames and repository names removed; scores, rankings and evidence unchanged) because the repository is public.
+
 ## Bonus features
 
 | Bonus idea from the brief | Where |
@@ -197,5 +199,5 @@ tests/                     eligibility, scoring, ingestion, LLM adapter (mocked 
 4. **A client-side token-bucket limiter** matched to the provider's tokens-per-minute budget (so calls are paced instead of retried after a 429), plus a fallback model chain and async I/O with `httpx`.
 
 ## Repository notes
-- `output/` and the design document in `docs/` are git-ignored: they show real candidate names, emails and scores from the company's dataset, and this repository is public. Run `python main.py --input ./resumes` to regenerate the results locally.
+- `output/` and the design document in `docs/` are git-ignored: they show real candidate names, emails and scores from the company's dataset, and this repository is public. Run `python main.py --input ./resumes` to regenerate the results locally. `results/` holds the anonymised copy of the generated results that is committed instead.
 - `resumes/` is ignored for the same reason, `.env` holds your API keys and is never committed (copy `.env.example`), and `.cache/` holds cached LLM and GitHub responses.
